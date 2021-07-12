@@ -1,0 +1,142 @@
+version: '2'
+
+services:
+    postgres:
+        container_name: postgres
+        image: postgres:13.2
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=postgres
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+        ports:
+            - "5432:5432"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "postgres"]
+            interval: 5s
+            retries: 5
+        restart: always
+        networks: 
+            - streaming-net
+
+    zookeeper:
+        image: confluentinc/cp-zookeeper:6.2.0
+        container_name: zookeeper
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+        ports:
+            - 22181:2181
+        restart: always
+        networks: 
+            - streaming-net
+
+    kafka:
+        image: confluentinc/cp-kafka:6.2.0
+        container_name: kafka
+        hostname: kafka
+        depends_on:
+            - zookeeper
+        ports:
+            - 29092:29092
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        restart: always
+        networks: 
+            - streaming-net
+        
+    spark:
+        image: docker.io/bitnami/spark:3
+        container_name: spark
+        hostname: spark
+        user: root
+        environment:
+            - SPARK_MODE=master
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+        volumes:
+            - ./code/spark_structured_streaming_postgres.py:/opt/bitnami/spark/project/spark_structured_streaming_postgres.py
+            - ./code/spark_structured_streaming_hadoop.py:/opt/bitnami/spark/project/spark_structured_streaming_hadoop.py
+            - ./code/spark_structured_streaming.py:/opt/bitnami/spark/project/spark_structured_streaming.py
+            - ./output:/opt/bitnami/spark/output
+            - ./connectors:/opt/bitnami/spark/connectors
+        ports:
+            - 4040:8080
+        restart: always
+        networks: 
+            - streaming-net
+        
+    spark-worker-1:
+        image: docker.io/bitnami/spark:3
+        container_name: spark-worker-1
+        user: root
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1G
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+        volumes:
+            - ./code/spark_structured_streaming_postgres.py:/opt/bitnami/spark/project/spark_structured_streaming_postgres.py
+            - ./code/spark_structured_streaming_hadoop.py:/opt/bitnami/spark/project/spark_structured_streaming_hadoop.py
+            - ./code/spark_structured_streaming.py:/opt/bitnami/spark/project/spark_structured_streaming.py
+            - ./output:/opt/bitnami/spark/output
+            - ./connectors:/opt/bitnami/spark/connectors
+        restart: always
+        networks: 
+            - streaming-net
+    
+    spark-worker-2:
+        image: docker.io/bitnami/spark:3
+        container_name: spark-worker-2
+        user: root
+        environment:
+            - SPARK_MODE=worker
+            - SPARK_MASTER_URL=spark://spark:7077
+            - SPARK_WORKER_MEMORY=1G
+            - SPARK_WORKER_CORES=1
+            - SPARK_RPC_AUTHENTICATION_ENABLED=no
+            - SPARK_RPC_ENCRYPTION_ENABLED=no
+            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+            - SPARK_SSL_ENABLED=no
+        volumes:
+            - ./code/spark_structured_streaming_postgres.py:/opt/bitnami/spark/project/spark_structured_streaming_postgres.py
+            - ./code/spark_structured_streaming_hadoop.py:/opt/bitnami/spark/project/spark_structured_streaming_hadoop.py
+            - ./code/spark_structured_streaming.py:/opt/bitnami/spark/project/spark_structured_streaming.py
+            - ./output:/opt/bitnami/spark/output
+            - ./connectors:/opt/bitnami/spark/connectors
+        restart: always
+        networks: 
+            - streaming-net
+
+    hadoop:
+        image: teivah/hadoop:2.9.2
+        container_name: hadoop
+        hostname: hadoop
+        volumes:
+            - ./output:/hadoop/output-data
+        ports:
+            - "50070:50070"
+            - "9000:9000"
+            - "50075:50075"
+            - "50010:50010"
+        restart: always
+        networks: 
+            - streaming-net
+
+networks:
+    streaming-net:
+        name: streaming-net
