@@ -59,7 +59,7 @@ Project ini menggunakan beberapa referensi `image` atau `container` berikut:
 
 
 ### .
-## Set-up
+## Setup
 
 ### Clone project
 
