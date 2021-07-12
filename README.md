@@ -85,7 +85,7 @@ Pindah ke working direktori */kafka-spark*
 
 Untuk running containers, Anda bisa jalankan command berikut
         
-        $ docker-compose -f docker-compose.yml up -d
+    $ docker-compose -f docker-compose.yml up -d
 
 Note: command -d digunakan agar running di background.
 
@@ -94,7 +94,7 @@ Note: command -d digunakan agar running di background.
 
 Anda bisa cek logs dari containers yang sudah di build, apakah containers/apps tersebut sudah ready
         
-        $ docker-compose -f docker-compose.yml logs --tail 10
+    $ docker-compose -f docker-compose.yml logs --tail 10
 
 Note: command --tail 10 hanya menampilkan 10 logs terakhir.
 
@@ -176,7 +176,7 @@ docker exec -it spark spark-submit --master spark://spark:7077 --packages org.ap
 ## Stops and Removes Containers, Networks & Volumes
 Anda bisa menghapus containers hasil dari `docker-compose up` dengan command berikut
         
-        $ docker-compose -f docker-compose.yml down
+    $ docker-compose -f docker-compose.yml down
 
 
 ### .
