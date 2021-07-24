@@ -117,7 +117,7 @@ Postgres Database menyimpan data streaming:
 
 
 ### .
-## How to Run an End to End Streaming Pipelines
+## How to Run an End to End Streaming Pipeline
 
 1. Pertama, jalankan python-producer apps dengan command:
 ```
